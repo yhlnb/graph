@@ -1,50 +1,44 @@
-use rand::Rng;
 use std::collections::HashMap;
 use std::collections::HashSet;
-
+use rand::Rng;
+use crate::hashfunc::Hasher;
 pub type VertexLabel = Vec<u8>;
+pub const IN_DEGREE: usize = 2;
 #[derive(Clone,Debug)]
 pub struct Edges(Vec<Vec<usize>>);
 impl Edges {
-pub fn b1(a: f64, r: f64) -> f64 {
-        let b = r + 2.0 * a;
-        b
-}
-pub fn hb(x: f64) -> f64 {
-    //二元熵函数
-        let y = -x * (x.log2()) - (1.0 - x) * ((1.0 - x).log2());
-        y
-}
 
-pub fn Chung(n: usize, a: f64, r: f64) -> Self {
+pub fn Chung(n: usize) -> Self {
     let mut rng = rand::thread_rng();
-    let mut map1:HashMap<usize, HashSet<usize> = HashMap::new() ;
-    let b = b1(a, r); //生成a，b的（0，1）的随机数
-    let k = (hb(a) + hb(b)) / (hb(a) - b * hb(a / b)); //取k临界值
-    let d = k.ceil() as i64;
-        for i in 0.. d * n {
-            let j = rng.gen_range(0, d * n);
+    let mut map1: HashMap<usize,HashSet<usize>> = HashMap::new() ;
+        for i in 0.. n * IN_DEGREE {
+            let j = rng.gen_range(0, IN_DEGREE * n);
             if map1.get(&(i % n)) == None {
-            let set: HashSet<(i64, i64)> = HashSet::new();
+            let set: HashSet<usize> = HashSet::new();
             map1.insert(i % n, set);
         }
         map1.get_mut(&(i % n)).unwrap().insert(j % n);    
         }
-        let mut edges: Vec<Vec<usize>> = vec![vec![]; n];
+        let mut edges: Vec<Vec<usize>> = vec![];
         for i in 0..n {
-            edges.push(map1.get(&i).unwrap().clone());
+            let s1 = map1.get(&i).unwrap();
+            let mut v1 :Vec<usize> = vec![];
+            for j in s1.iter() {
+                v1.push(*j);
+            }
+            edges.push(v1);
         }
         Edges(edges)
 }
 
-pub fn get_parent(&self,vertex:usize) -> Vec<usize> {
+pub fn get_parents(&self,vertex:usize) -> Vec<usize> {
         let mut parents = vec![]; 
         let mut n_parents = 0;
         for (source_index, edges) in self.0.iter().enumerate() {
             if edges.contains(&vertex) {
                 parents.push(source_index);
                 n_parents += 1;
-                if n_parents == d {
+                if n_parents == IN_DEGREE {
                     break;
                 }
             }
@@ -60,11 +54,26 @@ pub fn get_parent(&self,vertex:usize) -> Vec<usize> {
 #[derive(Debug)]
 pub struct LabelMatrix(pub Vec<Vec<VertexLabel>>);
 impl LabelMatrix {
-    pub fn new(edges:&Edges,k : usize , nonce: &[u8]) -> Self {
+    pub fn new(edges:&Edges,k : usize ,nonce: &[u8]) -> Self {
         let n = edges.n();
         let mut lable_matrix : Vec<Vec<VertexLabel>> = vec![vec![];k] ;
+        let mut hasher = Hasher::new() ;
+        lable_matrix[0] = (0..n)
+            .map(|i| hasher.lable_sources(&nonce,i))
+            .collect();
 
+        for col in 1..k {
+            for vertex in 0..n {
+                let parent_label: Vec<&VertexLabel> = edges
+                    .get_parents(vertex)
+                    .iter()
+                    .map(|parent_index| &lable_matrix[col - 1][*parent_index])
+                    .collect();
+                let vertex_label = hasher.lable_non_source(&parent_label);
+                lable_matrix[col].push(vertex_label);
+            }
+        }
         
-//没写完
+        LabelMatrix(lable_matrix)
     }
 }

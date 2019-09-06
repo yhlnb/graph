@@ -1,5 +1,16 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
+use rand::Rng;
+pub fn b1(a: f64, r: f64) -> f64 {
+        let b = r + 2.0 * a;
+        b
+}
+
+pub fn hb(x: f64) -> f64 {
+    //二元熵函数
+        let y = -x * (x.log2()) - (1.0 - x) * ((1.0 - x).log2());
+        y
+}
 
 pub fn creat_permutation(n: i64, a: f64, r: f64) -> HashMap<i64, HashSet<i64>> {
     let mut map1: HashMap<i64, HashSet<i64>> = HashMap::new();
