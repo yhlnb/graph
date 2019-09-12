@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 use rand::Rng;
+
+
+
+
 pub fn b1(a: f64, r: f64) -> f64 {
         let b = r + 2.0 * a;
         b

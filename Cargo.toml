@@ -10,3 +10,4 @@ edition = "2018"
 rand = { version = "0.7.0", features = ["wasm-bindgen"] }
 sha3 = "0.8.2"
 wasm-bindgen = "0.2"
+rust-crypto = "0.2.36"

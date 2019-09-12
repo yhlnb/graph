@@ -1,14 +1,17 @@
+
 use std::collections::HashMap;
 use std::collections::HashSet;
 use rand::Rng;
 use crate::hashfunc::Hasher;
+
 pub type VertexLabel = Vec<u8>;
 pub const IN_DEGREE: usize = 2;
+
 #[derive(Clone,Debug)]
 pub struct Edges(Vec<Vec<usize>>);
 impl Edges {
 
-pub fn Chung(n: usize) -> Self {
+pub fn chung(n: usize) -> Self {
     let mut rng = rand::thread_rng();
     let mut map1: HashMap<usize,HashSet<usize>> = HashMap::new() ;
         for i in 0.. n * IN_DEGREE {
@@ -59,7 +62,7 @@ impl LabelMatrix {
         let mut lable_matrix : Vec<Vec<VertexLabel>> = vec![vec![];k] ;
         let mut hasher = Hasher::new() ;
         lable_matrix[0] = (0..n)
-            .map(|i| hasher.lable_sources(&nonce,i))
+            .map(|i| hasher.label_sources(&nonce,i))
             .collect();
 
         for col in 1..k {
@@ -69,11 +72,11 @@ impl LabelMatrix {
                     .iter()
                     .map(|parent_index| &lable_matrix[col - 1][*parent_index])
                     .collect();
-                let vertex_label = hasher.lable_non_source(&parent_label);
+                let vertex_label = hasher.label_non_source(&parent_label);
                 lable_matrix[col].push(vertex_label);
             }
         }
-        
         LabelMatrix(lable_matrix)
     }
 }
+
