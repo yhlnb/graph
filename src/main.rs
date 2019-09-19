@@ -2,8 +2,11 @@ mod graph;
 mod hashfunc;
 use graph::Edges;
 use graph::LabelMatrix;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Node {
     value: Vec<u8>,
     index: (usize, usize),
@@ -24,15 +27,32 @@ impl Node {
 }
 
 fn main() {
-    let n = 100;
-    let k = 50;
-    let edge = Edges::chung(n);
-    let gra = LabelMatrix::new(&edge, k, &[0]);
-    for col in 0..k {
-        for vertex in 0..n {
-            let v1 = &gra.0[col][vertex];
-            let node = Node::new(v1.to_vec(), col, vertex);
-            println!("{:?}", node);
-        }
+    let (n, k) = (20, 5);
+    let mut v = vec![];
+    let edge = Arc::new(Edges::chung(n));
+    let gra = Arc::new(LabelMatrix::new(&edge, k, &[0]));
+    println!("{:?}",edge);
+    for col in 1..k {
+        let edge = edge.clone();
+        let gra = gra.clone();
+        let mut map = HashMap::new();
+        let child = thread::spawn(move || {
+            for vertex in 0..n {
+                let v2 = &edge.0[vertex];
+                let value = &gra.0[col - 1][vertex];
+                let node = Node::new(value.to_vec(), col - 1, vertex);
+                let mut tail = vec![];
+                for i in v2.iter() {
+                    let value = &gra.0[col][*i];
+                    let node_tail = Node::new(value.to_vec(), col, *i);
+                    tail.push(node_tail);
+                }
+                map.insert(node, tail);
+            }
+        });
+        v.push(child);
+    }
+    for child in v {
+        child.join().unwrap();
     }
 }
