@@ -13,7 +13,7 @@ impl Edges {
         let mut rng = rand::thread_rng();
         let mut map1 = HashMap::new();
         for i in 0..n * IN_DEGREE {
-            let j = rng.gen_range(0, IN_DEGREE * n);
+            let j = rng.gen_range(0, IN_DEGREE * n);   //有点问题
             if map1.get(&(i % n)) == None {
                 let set = HashSet::new();
                 map1.insert(i % n, set);
