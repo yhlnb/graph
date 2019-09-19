@@ -1,3 +1,11 @@
+
+//计算成功概率用的
+
+
+
+
+
+
 use std::collections::HashMap;
 use std::collections::HashSet;
 use rand::Rng;

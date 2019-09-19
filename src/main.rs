@@ -27,12 +27,12 @@ impl Node {
 }
 
 fn main() {
-    let (n, k) = (1000, 5);
+    let (n, k) = (1000, 50);
     let mut v = vec![];
     let edge = Arc::new(Edges::chung(n));
     let gra = Arc::new(LabelMatrix::new(&edge, k, &[0]));  //有些问题
     for col in 1..k {
-        let edge = edge.clone();
+        let edge = edge.clone(); //这没法用指针。。。
         let gra = gra.clone();
         let child = thread::spawn(move || {
             let mut map = HashMap::new();
