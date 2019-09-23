@@ -5,6 +5,7 @@ use graph::LabelMatrix;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::sync::mpsc::channel;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Node {
@@ -27,15 +28,16 @@ impl Node {
 }
 
 fn main() {
-    let (n, k) = (1000, 50);
-    let mut v = vec![];
-    let edge = Arc::new(Edges::chung(n));
-    let gra = Arc::new(LabelMatrix::new(&edge, k, &[0]));  //有些问题
+    let (n, k) = (50, 10);
+    let edge = Edges::chung(n);
+    let gra = Arc::new(LabelMatrix::new(&edge, k, &[0]));
+    let (tx,rx) = channel();
     for col in 1..k {
-        let edge = edge.clone(); //这没法用指针。。。
+        let tx = tx.clone();
+        let mut map = HashMap::new();
+        let edge = edge.clone(); 
         let gra = gra.clone();
-        let child = thread::spawn(move || {
-            let mut map = HashMap::new();
+        thread::spawn(move || {
             for vertex in 0..n {
                 let v2 = &edge.0[vertex];
                 let value = &gra.0[col - 1][vertex];
@@ -48,11 +50,11 @@ fn main() {
                 }
                 map.insert(node, tail);
             }
-            println!("{:?}", map);
+            tx.send(map).unwrap();
         });
-        v.push(child);
     }
-    for child in v {
-        child.join().unwrap();
+    for _ in 1..k {
+        let j = rx.recv().unwrap();
+        println!("{:?}", j);
     }
 }
